@@ -29,13 +29,16 @@ export default function LoginPage() {
         return;
       }
       localStorage.setItem("token", token);
-      // decode to get role
+
       try {
         const role = data?.role;
+        const userId = data?.userId;
+        const userName = data?.userName;
+        localStorage.setItem("userName", userName);
+        localStorage.setItem("userId", userId);
         routeByRole(role);
         localStorage.setItem("role", role);
       } catch (err) {
-        // if decode fails, go to default
         routeByRole(null);
       }
     } catch (err) {

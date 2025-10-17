@@ -41,7 +41,7 @@ export default function Navbar() {
   const menus = MENU_CONFIG[role] || [];
 
   return (
-    <nav className="bg-primary text-white px-6 py-3 flex items-center">
+<nav className="bg-primary text-white px-6 py-3 flex items-center sticky top-0 z-50 shadow-md">
       <div className="flex gap-4 font-medium">
         {menus.map((menu) => (
           <Link

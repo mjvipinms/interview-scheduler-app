@@ -28,3 +28,20 @@ export const getUsersByRole = async (role = null, page = 0, size = 10) => {
     throw error;
   }
 };
+export const getAllUsersByRole = async (role) => {
+  try {
+    const res = await axiosInstance.get(`/users/all/role/${role}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
+  }
+};
+
+export const getAvailablePanelists = async (startTime, endTime) => {
+  const token = localStorage.getItem("token");
+  const res = await axiosInstance.get('/users/available/panelist', {
+    params: { startTime, endTime }
+  });
+  return res.data;
+};

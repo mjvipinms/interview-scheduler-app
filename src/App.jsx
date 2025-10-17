@@ -7,6 +7,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserListPage from "./pages/UserListPage";
 import UserFormPage from "./pages/UserFormPage";
+import PanelistCalendarPage from "./components/slot/PanelistCalendarPage";
+import MainLayout from "./layouts/MainLayout";
+import HRCalendarPage from "./components/slot/HRCalendarPage";
 
 
 export default function App() {
@@ -14,7 +17,6 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
-
         <Route
           path="/admin-dashboard"
           element={
@@ -28,6 +30,7 @@ export default function App() {
           element={
             <ProtectedRoute>
               <HRDashboard />
+
             </ProtectedRoute>
           }
         />
@@ -36,6 +39,7 @@ export default function App() {
           element={
             <ProtectedRoute>
               <PanelDashboard />
+
             </ProtectedRoute>
           }
         />
@@ -47,10 +51,10 @@ export default function App() {
           element={
             <ProtectedRoute>
               <UserListPage />
+
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/admin/users/new"
           element={
@@ -67,7 +71,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
         <Route path="*" element={<NotFoundPage />} />
         <Route
           path="/users/role/:role/new"
@@ -82,6 +85,26 @@ export default function App() {
           element={
             <ProtectedRoute>
               <UserFormPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/panel/calendar"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PanelistCalendarPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/calendar"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <HRCalendarPage />
+              </MainLayout>
             </ProtectedRoute>
           }
         />
