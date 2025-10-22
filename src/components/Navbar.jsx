@@ -26,9 +26,12 @@ const MENU_CONFIG = {
 export default function Navbar() {
   const navigate = useNavigate();
   const [role, setRole] = useState(null);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const role = localStorage.getItem("role");
+    const storedName = localStorage.getItem("userFullName");
+    if (storedName) setUserName(storedName);
     setRole(role);
   }, []);
 
@@ -56,6 +59,11 @@ export default function Navbar() {
 
       <div className="ml-auto flex items-center gap-4">
         <span className="text-sm">Interview Scheduler</span>
+        {userName && (
+          <span className="text-gray-600 text-lg font-medium">
+            – {userName}
+          </span>
+        )}
         <button
           onClick={handleLogout}
           className="bg-white text-primary px-3 py-1 rounded hover:bg-sky-100"

@@ -10,6 +10,7 @@ import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import tippy from "tippy.js";
 import "tippy.js/dist/tippy.css";
 import InterviewDetailsModal from "../hr/InterviewDetailsModal";
+import { useLocation } from "react-router-dom";
 
 
 const HRCalendarPage = () => {
@@ -19,7 +20,8 @@ const HRCalendarPage = () => {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
-    const [viewType, setViewType] = useState("AVAILABLE");
+    const location = useLocation();
+    const [viewType, setViewType] = useState(location.state?.defaultView || "AVAILABLE");
     const [role, setRole] = useState(null);
     const [selectedEndTime, setSelectedEndTime] = useState(null);
     const [selectedStartTime, setSelectedStartTime] = useState(null);
@@ -28,7 +30,7 @@ const HRCalendarPage = () => {
     const [selectedInterview, setSelectedInterview] = useState(null);
 
 
-    // ✅ Fetch slots
+    //Fetch slots
     const loadSlots = async () => {
         try {
             const data = await fetchSlots();
@@ -40,17 +42,12 @@ const HRCalendarPage = () => {
         }
     };
 
-    // ✅ Fetch interviews
+    //Fetch interviews
     const loadInterviews = async () => {
         try {
             const data = await fetchAllInterviews();
             setInterviews(data || []);
             setWarning(data.length ? "" : "No scheduled interviews found.");
-            console.log("Fetched interviews:", data);
-            if (data.length > 0) {
-                console.log("Sample interview startTime:", data[0].startTime);
-                console.log("Sample interview endTime:", data[0].endTime);
-            }
 
         } catch (err) {
             console.error("Error loading interviews:", err);
@@ -58,7 +55,7 @@ const HRCalendarPage = () => {
         }
     };
 
-    // ✅ Normalize date format for FullCalendar
+    //Normalize date format for FullCalendar
     const normalizeDate = (dt) =>
         dt ? (dt.includes("T") ? dt : dt.replace(" ", "T")) : "";
 
@@ -98,14 +95,14 @@ const HRCalendarPage = () => {
         setSelectedEndTime(endTime);
 
         if (viewType === "AVAILABLE") {
-            const slot = slots.find((s) => s.id.toString() === slotId.toString());
+            const slot = slots.find((s) => s.slotId.toString() === slotId.toString());
             if (slot) {
                 setSelectedSlot(slot);
                 setShowScheduleModal(true);
             }
         } else if (viewType === "SCHEDULED") {
             const interview = interviews.find(
-                (i) => i.id.toString() === slotId.toString()
+                (i) => i.slotId.toString() === slotId.toString()
             );
             if (interview) {
                 setSelectedInterview(interview);
@@ -138,21 +135,21 @@ const HRCalendarPage = () => {
         }
     };
 
-    // ✅ Load slots on mount
+    //Load slots on mount
     useEffect(() => {
         const storedRole = localStorage.getItem("role");
         setRole(storedRole);
         if (storedRole === "HR") loadSlots();
     }, []);
 
-    // ✅ Switch view (Available / Scheduled)
+    // Switch view (Available / Scheduled)
     useEffect(() => {
         if (viewType === "AVAILABLE") {
             // Map available slots
             const availableEvents = slots
-                .filter((s) => s.status === "AVAILABLE")
+                .filter((s) => s.status === "UNBOOKED")
                 .map((slot) => ({
-                    id: slot.id,
+                    id: slot.slotId,
                     title: "Available Slot",
                     start: normalizeDate(slot.startTime),
                     end: normalizeDate(slot.endTime),
@@ -174,11 +171,11 @@ const HRCalendarPage = () => {
         }
     }, [viewType, slots]);
 
-    // ✅ Map interviews to calendar events once data is fetched
+    //Map interviews to calendar events once data is fetched
     useEffect(() => {
         if (viewType === "SCHEDULED" && interviews.length > 0) {
             const interviewEvents = interviews.map((i) => ({
-                id: i.id,
+                id: i.slotId,
                 title: `Interview - ${i.candidateName || "N/A"}`,
                 start: normalizeDate(i.startTime),
                 end: normalizeDate(i.endTime),
@@ -186,21 +183,20 @@ const HRCalendarPage = () => {
                 textColor: "white",
                 extendedProps: {
                     type: "SCHEDULED",
-                    panel: i.interviewerName || "N/A",
+                    panel: i.panellistNames || "N/A",
                     candidate: i.candidateName || "N/A",
                     status: "CONFIRMED",
                     startTime: new Date(i.startTime).toLocaleString(),
                     endTime: new Date(i.endTime).toLocaleString(),
                 },
             }));
-            console.log("Mapped interview events:", interviewEvents);
             setFilteredEvents(interviewEvents);
         } else if (viewType === "SCHEDULED" && interviews.length === 0) {
             setFilteredEvents([]);
         }
     }, [interviews, viewType]);
 
-    // ✅ Tooltips for events
+    // Tooltips for events
     const handleEventDidMount = (info) => {
         const props = info.event.extendedProps;
         let tooltipContent = "";
@@ -244,9 +240,9 @@ const HRCalendarPage = () => {
     };
 
 
-    // ✅ Counters
+    // Counters
     const totalAvailableSlots = slots.filter(
-        (s) => s.status === "AVAILABLE"
+        (s) => s.status === "UNBOOKED"
     ).length;
     const totalScheduledInterviews = interviews.length;
 
@@ -310,7 +306,7 @@ const HRCalendarPage = () => {
             {/* Warning */}
             {warning && (
                 <div className="text-center text-yellow-600 font-medium mb-4">
-                    ⚠️ {warning}
+                    {warning}
                 </div>
             )}
 

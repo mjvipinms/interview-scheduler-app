@@ -10,6 +10,10 @@ import UserFormPage from "./pages/UserFormPage";
 import PanelistCalendarPage from "./components/slot/PanelistCalendarPage";
 import MainLayout from "./layouts/MainLayout";
 import HRCalendarPage from "./components/slot/HRCalendarPage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import CandidateInterviewHistoryPage from "./pages/CandidateInterviewHistoryPage";
+
 
 
 export default function App() {
@@ -45,6 +49,7 @@ export default function App() {
         />
 
         <Route path="/admin/users" element={<Navigate to="/users/role/ADMIN" replace />} />
+        <Route path="/users/:id/history" element={<CandidateInterviewHistoryPage />} />
 
         <Route
           path="/users/role/:role"
@@ -110,6 +115,17 @@ export default function App() {
         />
 
       </Routes>
+      <ToastContainer position="top-right" autoClose={4000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="colored"
+      />
     </Router>
   );
 }

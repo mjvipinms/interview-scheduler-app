@@ -40,7 +40,7 @@ const ScheduleInterviewModal = ({ slot, startTime, endTime, onClose, onSave }) =
         const payload = {
             candidateId: selectedCandidate,
             panelistIds: selectedPanelists,
-            slotId: slot.id,
+            slotId: slot.slotId,
             hrId:localStorage.getItem("userId"),
             startTime,
             endTime,

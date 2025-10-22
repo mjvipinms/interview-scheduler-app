@@ -34,8 +34,10 @@ export default function LoginPage() {
         const role = data?.role;
         const userId = data?.userId;
         const userName = data?.userName;
+        const userFullName = data?.userFullName;
         localStorage.setItem("userName", userName);
         localStorage.setItem("userId", userId);
+        localStorage.setItem("userFullName", userFullName);
         routeByRole(role);
         localStorage.setItem("role", role);
       } catch (err) {

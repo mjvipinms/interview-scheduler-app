@@ -17,14 +17,29 @@ export const scheduleInterview = async (payload) => {
     if (res.data?.accessStatus) {
       throw new Error(res.data.accessStatus);
     }
+    return res.data;
   } catch (error) {
     console.error("Interview creation failed:", error);
     throw error;
   }
-  return res.data;
+};
+
+export const updateInterview = async (interviewId,interview) => {
+  const response = await axiosInstance.put(`/interviews/${interviewId}`, interview);
+  return response.data;
 };
 
 export const fetchAllInterviews = async () => {
   const response = await axiosInstance.get("/interviews");
+  return response.data;
+};
+
+export const fetchAllInterviewsByPanelId = async (panelId) => {
+  const response = await axiosInstance.get(`/interviews/panel/${panelId}`);
+  return response.data;
+};
+
+export const fetchAllInterviewsByCandidateId = async (candidateId) => {
+  const response = await axiosInstance.get(`/interviews/candidate/${candidateId}`);
   return response.data;
 };

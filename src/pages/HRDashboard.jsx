@@ -2,7 +2,7 @@ import DashboardContainer from "../components/DashboardContainer";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-//import { getDashboardSummary } from "../services/dashboardService";
+import { getHrDashboardSummary } from "../services/DashboardService";
 
 export default function HRDashboard() {
   const [data, setData] = useState({});
@@ -11,7 +11,7 @@ export default function HRDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-       // const res = await getDashboardSummary();
+        const res = await getHrDashboardSummary();
         setData(res);
       } catch (err) {
         console.error("Error loading dashboard data", err);
@@ -29,10 +29,10 @@ export default function HRDashboard() {
 
         {/* Responsive 3x2 Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          
+
           {/* Total Candidates */}
           <div
-            onClick={() => navigate("/hr/candidates")}
+            onClick={() => navigate("/users/role/CANDIDATE")}
             className="cursor-pointer hover:shadow-lg bg-white p-5 rounded-2xl transition-all"
           >
             <h2 className="text-lg font-semibold mb-1 text-gray-700">Total Candidates</h2>
@@ -44,7 +44,7 @@ export default function HRDashboard() {
 
           {/* Interviews Scheduled */}
           <div
-            onClick={() => navigate("/hr/interviews")}
+            onClick={() => navigate("/hr/calendar", { state: { defaultView: "SCHEDULED" } })}
             className="cursor-pointer hover:shadow-lg bg-white p-5 rounded-2xl transition-all"
           >
             <h2 className="text-lg font-semibold mb-1 text-gray-700">Interviews Scheduled</h2>
@@ -56,7 +56,7 @@ export default function HRDashboard() {
 
           {/* Panelists Pending Update */}
           <div
-            onClick={() => navigate("/hr/panel-availability")}
+            onClick={() => navigate("/users/role/PANEL_PENDING")}
             className="cursor-pointer hover:shadow-lg bg-white p-5 rounded-2xl transition-all"
           >
             <h2 className="text-lg font-semibold mb-1 text-gray-700">Pending Panel Updates</h2>
@@ -66,7 +66,7 @@ export default function HRDashboard() {
 
           {/* Upcoming Interviews */}
           <div
-            onClick={() => navigate("/hr/upcoming-interviews")}
+            onClick={() => navigate("/hr/calendar", { state: { defaultView: "SCHEDULED" } })}
             className="cursor-pointer hover:shadow-lg bg-white p-5 rounded-2xl transition-all col-span-1 sm:col-span-2 lg:col-span-1"
           >
             <h2 className="text-lg font-semibold mb-2 text-gray-700">Upcoming Interviews</h2>
@@ -74,7 +74,7 @@ export default function HRDashboard() {
               <ul className="space-y-1">
                 {data.upcoming.slice(0, 4).map((item, idx) => (
                   <li key={idx} className="text-sm text-gray-600 border-b pb-1">
-                    {item.candidateName} – {item.role} ({item.date})
+                    {item.candidateName} – {item.role} ({item.interviewDate})
                   </li>
                 ))}
               </ul>
@@ -85,7 +85,7 @@ export default function HRDashboard() {
 
           {/* Selected / Rejected */}
           <div
-            onClick={() => navigate("/hr/candidate-results")}
+            onClick={() => navigate("/users/role/CANDIDATE")}
             className="cursor-pointer hover:shadow-lg bg-white p-5 rounded-2xl transition-all"
           >
             <h2 className="text-lg font-semibold mb-1 text-gray-700">Selected / Rejected</h2>
@@ -99,7 +99,7 @@ export default function HRDashboard() {
 
           {/* Available Slots */}
           <div
-            onClick={() => navigate("/hr/available-slots")}
+            onClick={() => navigate("/hr/calendar", { state: { defaultView: "AVAILABLE" } })}
             className="cursor-pointer hover:shadow-lg bg-white p-5 rounded-2xl transition-all"
           >
             <h2 className="text-lg font-semibold mb-1 text-gray-700">Available Slots</h2>

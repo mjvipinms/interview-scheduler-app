@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import DashboardContainer from "../components/DashboardContainer";
-import { getAllUsers, getUsersByRole } from "../api/user";
+import { getAllUsers, getUsersByRole, getPendingPanelists } from "../api/user";
 
 export default function UserListPage() {
     const [users, setUsers] = useState([]);
@@ -13,7 +13,7 @@ export default function UserListPage() {
     const location = useLocation();
     const [successMessage, setSuccessMessage] = useState(location.state?.message || "");
 
-    const { role } = useParams(); // ADMIN, PANELIST, CANDIDATE
+    const { role } = useParams();
 
     useEffect(() => {
         if (!role || role.toUpperCase() === "ADMIN") {
@@ -35,15 +35,24 @@ export default function UserListPage() {
         setLoading(true);
         try {
             let data;
-            if (!role || role === "undefined"|| role.toUpperCase() === "ADMIN") {
+
+            if (role?.toUpperCase() === "PANEL_PENDING") {
+                data = await getPendingPanelists();
+            } else if (!role || role === "undefined" || role.toUpperCase() === "ADMIN") {
                 data = await getAllUsers(pageNo, 10);
             } else {
                 data = await getUsersByRole(role.toUpperCase(), pageNo, 10);
             }
 
-            setUsers(data.content || []);
-            setTotalPages(data.totalPages || 1);
-            setPage(data.number || 0);
+            if (Array.isArray(data)) {
+                setUsers(data);
+                setTotalPages(1);
+                setPage(0);
+            } else {
+                setUsers(data.content || []);
+                setTotalPages(data.totalPages || 1);
+                setPage(data.number || 0);
+            }
         } catch (err) {
             console.error("Error fetching users:", err);
         } finally {
@@ -61,6 +70,7 @@ export default function UserListPage() {
         HR: "HR Users",
         PANEL: "Panelists",
         CANDIDATE: "Candidates",
+        PANEL_PENDING: "Pending Panelists",
     };
 
     const canAdd = ["ADMIN", "CANDIDATE", "PANEL"].includes(role?.toUpperCase());
@@ -73,6 +83,12 @@ export default function UserListPage() {
     const handleEdit = (id) => {
         if (role?.toUpperCase() === "ADMIN") navigate(`/admin/users/${id}/edit`);
         else navigate(`/users/role/${role}/${id}/edit`);
+    }; 
+    
+    const showHistory = (id, name) => {
+        navigate(`/users/${id}/history`, {
+            state: { candidateName: name },
+        });
     };
 
     return (
@@ -133,6 +149,12 @@ export default function UserListPage() {
                                                 )}
                                             </td>
                                             <td className="border p-2 text-center">
+                                                <button
+                                                    className="bg-yellow-500 text-white px-2 py-1 rounded mr-2 hover:bg-sky-600"
+                                                    onClick={() => showHistory(user.userId, user.fullName)}
+                                                >
+                                                    History
+                                                </button>
                                                 <button
                                                     className="bg-sky-500 text-white px-2 py-1 rounded mr-2 hover:bg-sky-600"
                                                     onClick={() => handleEdit(user.userId)}

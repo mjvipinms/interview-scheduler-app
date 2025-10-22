@@ -2,88 +2,121 @@ import React, { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import timeGridPlugin from "@fullcalendar/timegrid";
 import { fetchSlotsByPanelId, createSlot, updateSlot } from "../../services/slotService";
+import { fetchAllInterviewsByPanelId } from "../../services/interviewService";
 import SlotModal from "./SlotModel";
+import InterviewFeedbackModal from "./InterviewFeedbackModal";
+import { toast } from "react-toastify";
 
 const PanelistCalendarPage = () => {
   const [slots, setSlots] = useState([]);
+  const [interviews, setInterviews] = useState([]);
+  const [role, setRole] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null); 
-  const [role, setRole] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedInterview, setSelectedInterview] = useState(null);
 
-  const loadSlots = async () => {
+  const loadData = async () => {
     try {
-      const data = await fetchSlotsByPanelId(localStorage.getItem("userId"));
-      setSlots(data);
+      const panelistId = localStorage.getItem("userId");
+      const [slotsData, interviewsData] = await Promise.all([
+        fetchSlotsByPanelId(panelistId),
+        fetchAllInterviewsByPanelId(panelistId),
+      ]);
+      setSlots(slotsData || []);
+      setInterviews(interviewsData || []);
     } catch (err) {
-      console.error("Error loading slots:", err);
-      alert("Failed to load slots");
+      toast.error("Failed to load calendar data");
     }
   };
 
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
   const handleDateClick = (info) => {
+    if (isPastDate(info.date)) {
+      toast.warn("You cannot create slots in the past.");
+      return;
+    }
     setSelectedDate(info.dateStr);
-    setSelectedSlot(null); 
+    setSelectedSlot(null);
     setShowModal(true);
   };
 
   const handleEventClick = (clickInfo) => {
-    const slotId = clickInfo.event.id;
-    const slot = slots.find((s) => s.id.toString() === slotId.toString());
-    setSelectedSlot(slot);
-    setSelectedDate(slot.startTime.split("T")[0]);
-    setShowModal(true);
+    const { slotId, type } = clickInfo.event.extendedProps;
+
+    if (type === "INTERVIEW") {
+      const interview = interviews.find((i) => i.slotId === slotId);
+      if (interview) {
+        setSelectedInterview(interview);
+        setShowFeedbackModal(true);
+      } else {
+        toast.error("Interview details not found.");
+      }
+    } else if (type === "SLOT") {
+      const slot = slots.find((s) => s.slotId.toString() === slotId.toString());
+      if (slot) {
+        setSelectedSlot(slot);
+        setSelectedDate(slot.startTime.split("T")[0]);
+        setShowModal(true);
+      }
+    }
   };
 
   const handleSaveSlot = async (slotData) => {
     try {
       const token = localStorage.getItem("token");
       const panelistId = localStorage.getItem("userId");
-
-      const payload = {
-        panelistId,
-        startTime: slotData.startTime,
-        endTime: slotData.endTime,
-      };
+      const payload = { panelistId, startTime: slotData.startTime, endTime: slotData.endTime };
 
       if (selectedSlot) {
         await updateSlot(selectedSlot.id, payload, token);
-        alert("Slot updated successfully!");
+        toast.success("Slot updated successfully!");
       } else {
         await createSlot(payload, token);
-        alert("Slot created successfully!");
+        toast.success("Slot created successfully!");
       }
-
       setShowModal(false);
-      await loadSlots();
+      await loadData();
     } catch (error) {
-      console.error("Error saving slot:", error);
-      alert("Failed to save slot. Please try again.");
+      toast.error("Failed to save slot. Please try again.");
     }
   };
 
   useEffect(() => {
     const role = localStorage.getItem("role");
     setRole(role);
-    if (role === "PANEL") loadSlots();
+    if (role === "PANEL") loadData();
   }, []);
 
-  const events = slots.map((slot) => ({
-    id: slot.id,
-    title: slot.status,
-    start: slot.startTime,
-    end: slot.endTime,
-    backgroundColor:
-      slot.status === "AVAILABLE"
-        ? "#22c55e"
-        : slot.status === "TENTATIVE"
-        ? "#facc15"
-        : slot.status === "CONFIRMED"
-        ? "#3b82f6"
-        : "#9ca3af",
-    textColor: "white",
-  }));
+  const events = [
+    ...interviews.map((i) => ({
+      slotId: i.slotId,
+      title: "Scheduled Interview",
+      start: new Date(i.startTime || i.interviewDate).toISOString(),
+      backgroundColor: "#22c55e",
+      textColor: "white",
+      type: "INTERVIEW",
+    })),
+    ...slots
+      .filter((s) => s.status !== "BOOKED")
+      .map((slot) => ({
+        slotId: slot.slotId,
+        title: "Available Slot",
+        start: slot.startTime,
+        end: slot.endTime,
+        backgroundColor: "#facc15",
+        textColor: "black",
+        type: "SLOT",
+      })),
+  ];
 
   if (!role) {
     return <div className="p-6 text-center text-gray-500">Loading user info...</div>;
@@ -99,26 +132,40 @@ const PanelistCalendarPage = () => {
 
       <div className="bg-white shadow-lg rounded-lg p-4 border border-gray-200">
         <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={{
             left: "prev,next today",
             center: "title",
-            right: "",
+            right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           dateClick={handleDateClick}
-          eventClick={handleEventClick} 
+          eventClick={handleEventClick}
           events={events}
           height="auto"
+          dayCellDidMount={(info) => {
+            if (isPastDate(info.date)) {
+              info.el.style.opacity = "0.5";
+              info.el.style.pointerEvents = "none";
+              info.el.style.backgroundColor = "#f5f5f5";
+            }
+          }}
         />
       </div>
 
       {showModal && (
         <SlotModal
           date={selectedDate}
-          slot={selectedSlot} 
+          slot={selectedSlot}
           onClose={() => setShowModal(false)}
           onSave={handleSaveSlot}
+        />
+      )}
+
+      {showFeedbackModal && selectedInterview && (
+        <InterviewFeedbackModal
+          interview={selectedInterview}
+          onClose={() => setShowFeedbackModal(false)}
         />
       )}
     </div>

@@ -45,3 +45,8 @@ export const getAvailablePanelists = async (startTime, endTime) => {
   });
   return res.data;
 };
+
+export const getPendingPanelists = async () => {
+  const res = await axiosInstance.get(`/users/panelists/pending`);
+  return res.data;
+};
