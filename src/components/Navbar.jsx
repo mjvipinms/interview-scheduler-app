@@ -13,6 +13,7 @@ const MENU_CONFIG = {
     { label: "Candidates", path: "/users/role/CANDIDATE" },
     { label: "Panelist", path: "/users/role/PANEL" },
     { label: "Notifications", path: "/hr/notifications" },
+    { label: "Change Request", path: "/hr/change-requests" },
     { label: "Reports", path: "/hr/reports" },
   ],
   PANEL: [

@@ -8,6 +8,8 @@ import { fetchAllInterviewsByPanelId } from "../../services/interviewService";
 import SlotModal from "./SlotModel";
 import InterviewFeedbackModal from "./InterviewFeedbackModal";
 import { toast } from "react-toastify";
+import ChangeRequestModal from "./ChangeRequestModal";
+
 
 const PanelistCalendarPage = () => {
   const [slots, setSlots] = useState([]);
@@ -18,6 +20,7 @@ const PanelistCalendarPage = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState(null);
+  const [showChangeModal, setShowChangeModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -56,7 +59,15 @@ const PanelistCalendarPage = () => {
       const interview = interviews.find((i) => i.slotId === slotId);
       if (interview) {
         setSelectedInterview(interview);
-        setShowFeedbackModal(true);
+        // show a small action popup
+        const confirmAction = window.confirm(
+          "Do you want to view feedback or request a change?\n\nClick OK for Feedback, Cancel for Change Request."
+        );
+        if (confirmAction) {
+          setShowFeedbackModal(true);
+        } else {
+          setShowChangeModal(true);
+        }
       } else {
         toast.error("Interview details not found.");
       }
@@ -166,6 +177,12 @@ const PanelistCalendarPage = () => {
         <InterviewFeedbackModal
           interview={selectedInterview}
           onClose={() => setShowFeedbackModal(false)}
+        />
+      )}
+      {showChangeModal && selectedInterview && (
+        <ChangeRequestModal
+          interview={selectedInterview}
+          onClose={() => setShowChangeModal(false)}
         />
       )}
     </div>
