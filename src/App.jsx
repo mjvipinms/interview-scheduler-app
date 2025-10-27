@@ -15,6 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 import CandidateInterviewHistoryPage from "./pages/CandidateInterviewHistoryPage";
 import HRChangeRequestList from "./components/hr/HRChangeRequestList";
 import PanelChangeRequestList from "./components/panel/PanelChangeRequestList";
+import NotificationsPage from "./pages/NotificationsPage";
 
 
 
@@ -53,7 +54,7 @@ export default function App() {
         <Route path="/admin/users" element={<Navigate to="/users/role/ADMIN" replace />} />
         <Route path="/users/:id/history" element={<CandidateInterviewHistoryPage />} />
         <Route path="/panel/change-request" element={<PanelChangeRequestList />} />
-
+      
         <Route
           path="/users/role/:role"
           element={
@@ -121,14 +122,38 @@ export default function App() {
           element={
             <>
               <ProtectedRoute>
-              <MainLayout>
-                <HRChangeRequestList />
-              </MainLayout>
-            </ProtectedRoute>
+                <MainLayout>
+                  <HRChangeRequestList />
+                </MainLayout>
+              </ProtectedRoute>
             </>
           }
         />
-       
+        <Route
+          path="/hr/notifications"
+          element={
+            <>
+              <ProtectedRoute>
+                <MainLayout>
+                  <NotificationsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            </>
+          }
+        />
+        <Route
+          path="/panel/notifications"
+          element={
+            <>
+              <ProtectedRoute>
+                <MainLayout>
+                  <NotificationsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            </>
+          }
+        />
+
       </Routes>
       <ToastContainer position="top-right" autoClose={4000} />
       <ToastContainer

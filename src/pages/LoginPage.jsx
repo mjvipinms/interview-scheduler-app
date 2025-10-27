@@ -44,7 +44,9 @@ export default function LoginPage() {
         routeByRole(null);
       }
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || "Login failed");
+      if (err?.response?.data?.status === 400 || err?.response?.data?.status === 401) {
+        setError("Invalid username or password");
+      }
     }
   };
 
