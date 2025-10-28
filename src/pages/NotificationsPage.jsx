@@ -1,126 +1,136 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { getNotificationsByUser, updateNotification } from "../services/NotificationService";
 
-export default function NotificationsPage() {
-    const [notifications, setNotifications] = useState([]);
-    const [page, setPage] = useState(0);
-    const [size] = useState(10);
-    const [totalPages, setTotalPages] = useState(0);
-    const [loading, setLoading] = useState(true);
+const NotificationsPage = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageNum, setPageNum] = useState(0);
 
-    const userId = localStorage.getItem("userId"); // assuming stored on login
+  const loggedInUserId = localStorage.getItem("userId");
 
-    useEffect(() => {
-        fetchNotifications(page);
-    }, [page]);
-
-    const fetchNotifications = async (pageNum) => {
-        setLoading(true);
-        try {
-            const response = await fetch("http://localhost:8083/api/notifications/get-by-user", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, page: pageNum, size }),
-            });
-
-            if (!response.ok) throw new Error("Failed to fetch notifications");
-
-            const data = await response.json();
-            setNotifications(data.content);
-            setTotalPages(data.totalPages);
-        } catch (error) {
-            console.error("Error fetching notifications:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleMarkAsRead = async (id) => {
-        try {
-            const response = await fetch("http://localhost:8083/api/notifications/update", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    notificationId: id,
-                    isRead: true,
-                    updatedBy: userId,
-                }),
-            });
-
-            if (response.ok) {
-                // Refresh the list
-                fetchNotifications(page);
-            }
-        } catch (error) {
-            console.error("Error marking as read:", error);
-        }
-    };
-
-    if (loading) {
-        return <div className="p-6 text-gray-600">Loading notifications...</div>;
+  const fetchNotifications = async (page = 0) => {
+    setLoading(true);
+    try {
+      const payload = {
+        userId: loggedInUserId,
+        page,
+        size: 10,
+      };
+      const data = await getNotificationsByUser(payload);
+      setNotifications(data.content || []);
+      setTotalPages(data.totalPages || 0);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (notifications.length === 0) {
-        return <div className="p-6 text-gray-600">No notifications found.</div>;
-    }
+  useEffect(() => {
+    fetchNotifications(pageNum);
+  }, [pageNum]);
 
-    return (
-        <Navbar>
-            <DashboardContainer>
-                <div className="p-6">
-                    <h1 className="text-xl font-semibold mb-4">Notifications</h1>
-                    <div className="flex flex-col gap-3">
-                        {notifications.map((n) => (
-                            <div
-                                key={n.notificationId}
-                                className={`border p-4 rounded-lg shadow-sm ${n.isRead ? "bg-gray-100" : "bg-blue-50"
-                                    }`}
-                            >
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <h2 className="font-semibold">{n.subject}</h2>
-                                        <p className="text-sm text-gray-700">{n.content}</p>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Sent at: {new Date(n.sentAt).toLocaleString()}
-                                        </p>
-                                    </div>
+  const handleMarkAsRead = async (notificationId) => {
+  try {
+    await updateNotification(notificationId, loggedInUserId);
 
-                                    {!n.isRead && (
-                                        <button
-                                            onClick={() => handleMarkAsRead(n.notificationId)}
-                                            className="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
-                                        >
-                                            Mark as Read
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Pagination Controls */}
-                    <div className="flex justify-center items-center gap-4 mt-6">
-                        <button
-                            disabled={page === 0}
-                            onClick={() => setPage(page - 1)}
-                            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-                        >
-                            Prev
-                        </button>
-
-                        <span className="text-sm">
-                            Page {page + 1} of {totalPages}
-                        </span>
-
-                        <button
-                            disabled={page >= totalPages - 1}
-                            onClick={() => setPage(page + 1)}
-                            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-            </DashboardContainer>
-        </Navbar>
+    // Optimistically update UI
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.notificationId === notificationId ? { ...n, isRead: true } : n
+      )
     );
-}
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+  }
+};
+
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-800">Notifications</h2>
+
+      {loading ? (
+        <p className="text-gray-500">Loading...</p>
+      ) : notifications.length === 0 ? (
+        <p className="text-gray-500">No notifications found</p>
+      ) : (
+        <div className="overflow-x-auto bg-white shadow-md rounded-lg border border-gray-200">
+          <table className="min-w-full text-sm text-left text-gray-700">
+            <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
+              <tr>
+                <th className="px-6 py-3">#</th>
+                <th className="px-6 py-3">Subject</th>
+                <th className="px-6 py-3">Content</th>
+                <th className="px-6 py-3">Recipient</th>
+                <th className="px-6 py-3">Sent At</th>
+                <th className="px-6 py-3">Created By</th>
+                <th className="px-6 py-3">Updated By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {notifications.map((n,index) => {
+                const isUnread = n.isRead === false || n.isRead === null;
+
+                return (
+                  <tr
+                    key={n.notificationId}
+                    onClick={() => handleMarkAsRead(n.notificationId)}
+                    className={`border-t cursor-pointer transition ${
+                      isUnread
+                        ? "bg-gray-100 hover:bg-gray-200"
+                        : "bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    <td className="px-6 py-3 font-medium">{pageNum * 10 + (index + 1)}</td>
+                    <td className="px-6 py-3 font-medium">{n.subject || "-"}</td>
+                    <td className="px-6 py-3">{n.content || "-"}</td>
+                    <td className="px-6 py-3">{n.recipient || "-"}</td>
+                    <td className="px-6 py-3">
+                      {n.sentAt ? new Date(n.sentAt).toLocaleString() : "-"}
+                    </td>
+                    <td className="px-6 py-3">{n.createdBy || "-"}</td>
+                    <td className="px-6 py-3">{n.updatedBy || "-"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="flex items-center justify-center gap-4 mt-6">
+        <button
+          disabled={pageNum === 0}
+          onClick={() => setPageNum((prev) => prev - 1)}
+          className={`px-4 py-2 rounded-md border ${
+            pageNum === 0
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          Prev
+        </button>
+
+        <span className="text-gray-700 font-medium">
+          Page {pageNum + 1} of {totalPages || 1}
+        </span>
+
+        <button
+          disabled={pageNum + 1 >= totalPages}
+          onClick={() => setPageNum((prev) => prev + 1)}
+          className={`px-4 py-2 rounded-md border ${
+            pageNum + 1 >= totalPages
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default NotificationsPage;
