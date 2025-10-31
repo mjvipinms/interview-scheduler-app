@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
 import DashboardContainer from "../../components/DashboardContainer";
-import { toast } from "react-toastify";
 import { fetchChangeRequestByPanelId } from "../../services/InterviewChangeRequestService";
 
 export default function PanelChangeRequestList() {

@@ -16,6 +16,7 @@ import CandidateInterviewHistoryPage from "./pages/CandidateInterviewHistoryPage
 import HRChangeRequestList from "./components/hr/HRChangeRequestList";
 import PanelChangeRequestList from "./components/panel/PanelChangeRequestList";
 import NotificationsPage from "./pages/NotificationsPage";
+import HrReportPage from "./components/hr/HrReportPage";
 
 
 
@@ -153,9 +154,20 @@ export default function App() {
             </>
           }
         />
+        <Route
+          path="/hr/reports"
+          element={
+            <>
+              <ProtectedRoute>
+                <MainLayout>
+                  <HrReportPage />
+                </MainLayout>
+              </ProtectedRoute>
+            </>
+          }
+        />
 
       </Routes>
-      <ToastContainer position="top-right" autoClose={4000} />
       <ToastContainer
         position="top-right"
         autoClose={4000}

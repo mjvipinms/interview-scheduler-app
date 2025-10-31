@@ -22,3 +22,8 @@ export const fetchSlotsByPanelId = async (panelId) => {
   const response = await axiosInstance.get(`/slots/panel/${panelId}`);
   return response.data;
 };
+
+export const fetchAvailableSlots = async () => {
+  const response = await axiosInstance.get("/slots/available");
+  return response.data;
+};

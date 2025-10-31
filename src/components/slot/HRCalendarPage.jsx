@@ -157,7 +157,7 @@ const HRCalendarPage = () => {
                     textColor: "white",
                     extendedProps: {
                         type: "AVAILABLE",
-                        panel: slot.interviewerName || "N/A",
+                        panel: slot.panelistName || "N/A",
                         status: slot.status,
                         startTime: new Date(slot.startTime).toLocaleString(),
                         endTime: new Date(slot.endTime).toLocaleString(),
@@ -185,7 +185,7 @@ const HRCalendarPage = () => {
                     type: "SCHEDULED",
                     panel: i.panellistNames || "N/A",
                     candidate: i.candidateName || "N/A",
-                    status: "CONFIRMED",
+                    status: i.interviewStatus || "N/A",
                     startTime: new Date(i.startTime).toLocaleString(),
                     endTime: new Date(i.endTime).toLocaleString(),
                 },
@@ -342,6 +342,8 @@ const HRCalendarPage = () => {
                     endTime={selectedEndTime}
                     onClose={() => setShowScheduleModal(false)}
                     onSave={loadSlots}
+                    interview={selectedInterview}
+                    viewType={viewType}
                 />
             )}
 

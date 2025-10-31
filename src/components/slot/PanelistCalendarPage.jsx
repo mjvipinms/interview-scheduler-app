@@ -85,7 +85,26 @@ const PanelistCalendarPage = () => {
     try {
       const token = localStorage.getItem("token");
       const panelistId = localStorage.getItem("userId");
-      const payload = { panelistId, startTime: slotData.startTime, endTime: slotData.endTime };
+
+      const start = new Date(slotData.startTime);
+      const end = new Date(slotData.endTime);
+      const now = new Date();
+
+      if (start < now) {
+        toast.error("Start time cannot be in the past.");
+        return;
+      }
+
+      if (end <= start) {
+        toast.error("End time must be greater than start time.");
+        return;
+      }
+
+      const payload = {
+        panelistId,
+        startTime: slotData.startTime,
+        endTime: slotData.endTime,
+      };
 
       if (selectedSlot) {
         await updateSlot(selectedSlot.id, payload, token);
@@ -94,6 +113,7 @@ const PanelistCalendarPage = () => {
         await createSlot(payload, token);
         toast.success("Slot created successfully!");
       }
+
       setShowModal(false);
       await loadData();
     } catch (error) {
