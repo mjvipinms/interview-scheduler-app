@@ -122,6 +122,7 @@ export default function HrReportPage() {
                     { key: "candidateName", label: "Candidate", sortable: true },
                     { key: "panelNames", label: "Panelists", sortable: false },
                     { key: "status", label: "Status", sortable: true },
+                    { key: "isDeleted", label: "Deleted", sortable: true },
                 ];
             case "slots":
                 return [
@@ -175,6 +176,9 @@ export default function HrReportPage() {
         }
         if (col.key === "panelists" && Array.isArray(v)) {
             return v.map((p) => p.name).join(", ");
+        }
+        if (col.key === "isDeleted" ) {
+            return  v === true ? "Yes" : "No";
         }
         return v === null || v === undefined ? "-" : String(v);
     }

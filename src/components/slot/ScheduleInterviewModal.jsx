@@ -25,7 +25,7 @@ const ScheduleInterviewModal = ({ slot, startTime, endTime, onClose, onSave, int
         if (interview) {
             setSelectedCandidate(interview.candidateId || "");
             setInterviewType(interview.interviewType || "");
-            setSelectedPanelists(interview.panellistIds || []);
+            setSelectedPanelists([]);
         }
     }, [interview]);
 
